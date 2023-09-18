@@ -51,7 +51,7 @@ UTILDIR=/home/lgmastin/volcanoes/Okmok/scripts           #location of programs r
 #####NAMES OF DIRECTORIES WHERE RUNS ARE PERFORMED, AND WHERE OUTPUT IS WRITTEN
 FileDate=`date "+%Y%b%d"`                               #date, to be appended to file names
 RUNDIRS=/home/lgmastin/volcanoes/Okmok/RunDirs          #directory where runs are performed
-OUTPUTDIR=/home/lgmastin/volcanoes/Okmok/scripts/example_output  #directory containing output
+OUTPUTDIR=/home/lgmastin/volcanoes/Okmok/scripts/test_output  #directory containing output
 
 ####Output subdirectories.
 ##If the runs are done in a group of 1,000 or so at a time, each group of 1,000 will
