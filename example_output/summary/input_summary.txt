@@ -1,0 +1,5 @@
+SUMMARY OF INPUT VALUES USED IN HANFORD RUNS ON 2023Sep18
+run #     start time                       plume height  duration   volume   m_fines    mu_agg
+          yyyymmddhh.hh  hrs_since_1900         km          hrs      km3                 phi
+00001     2003121916.43       911344.43         21.0        3.0    0.0100    0.4314    2.4000
+00002     20110311 1.20       974665.20         21.0        3.0    0.0100    0.6384    2.4000
