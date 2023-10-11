@@ -1,0 +1,14 @@
+This is a brief explanation of how to clone this repository, make changes, and make commits:
+
+CLONING THE REPOSITORY
+   git clone https://github.com/lgmastin/Ash3d_cryptotephra
+
+MAKING CHANGES
+   make changes in whatever files you like; e.g., readme.txt.  When you're done:
+   git status          #displays which files were modified
+
+COMMITTING CHANGES
+   git add readme.txt  #stages readme.txt for commit
+   git commit -m "changed readme.txt"   #commits to the local working directory
+   git push origin main                 #pushes changes to github.  You'll need to log in as lgmastin to do this.
+
