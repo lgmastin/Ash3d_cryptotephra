@@ -115,7 +115,7 @@ t0=`date`                        #date, printed at end of run
 date
 
 #####################   Make the directories  ####################################
-echo "making directories"
+echo "making run directories"
 for (( idir=1;idir<=$dirmax;idir++ ))
 do
    if [[ ${idir} -lt 10 ]]; then
