@@ -9,7 +9,8 @@
       logical            :: useLeap                                        !used by HS_yyyymmddhhmm
       real*8             :: hour,HourNow,HoursSince1900
       real*8             :: height_now, duration_now, volume_now, volume_now_old, &
-                               m_fines, mu_agg, distal_fraction
+                               grainsize_mm, density_kgm3, distal_fraction, &
+                               nodal_spacing, volcano_latitude, volcano_longitude
       real*8             :: sim_duration                                   !simulation duration
       integer            :: iWindFile
       character(len=13)  :: yyyymmddhhmm_since_1900, windhour_now
@@ -18,19 +19,25 @@
       character(len=6)   :: wind_yyyymm
       character(len=5)   :: RunNumber
       character(len=3)   :: gstype,month,monthlabel(12)
-      character(len=78)  :: inputline
-      character(len=84)  :: outfile
+      character(len=89)  :: inputline
+      character(len=150) :: input_table_path, output_table_path
+      character(len=30)  :: volcano_name
       integer            :: inum,im,irun                               !counter
       integer            :: intRunNumber
       real*8             :: hours_since_1900
 
+      !Variables to check and verify
+      sim_duration     = 240.      !simulation duration
+      nodal_spacing    = 1.0       !nodal spacing in degrees
+      input_table_path = '/home/lgmastin/temp/Ash3d_cryptotephra/input_files/input_table.txt'
+      output_table_path= '/home/lgmastin/temp/RunDirs/temp_output/input_summary.txt'
+      volcano_name     = 'Katmai'
+      volcano_latitude = 58.262
+      volcano_longitude= -155.159
+
       !some constants
       BaseYear         = 1900      !start year for yyyymmddhh
       useLeap          = .true.    !use leap years when calculating yyyymmddhh_since_1900
-      sim_duration     = 240.      !simulation duration
-      distal_fraction  = 0.05      !fraction of erupted volume that remains in the distal cloud
-
-      !Particle diameters, mass fractions, and densities
       data monthlabel/'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'/
 
       !read run number
@@ -43,25 +50,26 @@
       end if
       read(RunNumber,*) intRunNumber             !convert to integer
 
-      !read input file to get date and time
-      open(unit=12,file='/home/lgmastin/volcanoes/Okmok/scripts/input_files/input_table.txt', &
-                  action='read')
+      !read input file to get date, time, and other ESPs
+      open(unit=12,file=input_table_path,action='read')
       read(12,*)                                    !skip the first three lines
       read(12,*)
       do inum=1,intRunNumber                        !Now, skip down to the appropriate run number line
          read(12,*)
       end do
-      read(12,'(a78)') inputline
+      read(12,'(a89)') inputline
       read(inputline,1)  irun, iday, month, iyear, ihour, iminute, isecond, &
-                         height_now, duration_now, volume_now_old, m_fines, mu_agg
-1     format(i5,3x,i2,x,a3,x,i4,x,i2,x,i2,x,i2,4x,f6.2,6x,f6.2,3x,f7.4, &
-           4x,f6.4,5x,f3.1)
+                         height_now, duration_now, volume_now_old, grainsize_mm, &
+                         density_kgm3, distal_fraction
+1     format(i5,3x,i2,x,a3,x,i4,x,i2,x,i2,x,i2,4x,f6.2,6x,f6.2,4x,f6.4, &
+           4x,f6.4,4x,f6.1,4x,f5.3)
       do im=1,12                                !Determine imonth from label
         if (month.eq.monthlabel(im)) then
            imonth=im
            exit
         end if
      end do
+
      hour = real(ihour)+real(iminute)/60. + real(isecond)/3600.
      HoursSince1900 = hours_since_1900(iyear,imonth,iday,hour)
      volume_now = volume_now_old*distal_fraction
@@ -72,7 +80,8 @@
      !Write output (for testing)
 !     write(6,10) intRunNumber, irun, iday, month, imonth, iyear, ihour, hour, &
 !                 iminute, isecond, HoursSince1900, height_now, duration_now, &
-!                 volume_now_old, volume_now, m_fines, mu_agg
+!                 volume_now_old, volume_now, grainsize_mm, density_kgm3, &
+!                 distal_fraction
 !10   format( '    intRunNumber=',i5,/, &
 !             '            irun=',i5,/, &
 !             '            iday=',i2,/, &
@@ -88,27 +97,29 @@
 !             '    duration_now=',f6.2,/, &
 !             '      volume_now_old=',f6.4,/, &
 !             '      volume_now=',f6.4,/, &
-!             '         m_fines=',f6.4,/, &
-!             '          mu_agg=',f3.1)
+!             '    grainsize_mm=',f6.4,/, &
+!             '    density_kgm3=',f6.1,/, &
+!             '    distal_fraction=',f5.3)
+!stop
 
       !write these input values to a summary file
-      write(outfile,243)
-243   format('/home/lgmastin/volcanoes/Okmok/RunDirs/temp_output/input_summary.txt')
       !write(6,*) 'outfile=',outfile
-      open(unit=12,file=outfile,access='append')
+      open(unit=12,file=output_table_path,access='append')
       !open(unit=12,file='input_summary.txt',access='append')          !for testing
 
       !write the input to the summary log
       write(12,2)  RunNumber, iyear, imonth, iday, hour, HoursSince1900, height_now, duration_now, &
-                       volume_now, m_fines, mu_agg
+                       volume_now_old, grainsize_mm, density_kgm3, distal_fraction
       write(6,2)   RunNumber, iyear, imonth, iday, hour, HoursSince1900, height_now, duration_now,  &
-                       volume_now, m_fines, mu_agg
-2     format(a5,5x,i4,i2.2,i2.2,f05.2,2x,f14.2,f13.1,f11.1,3f10.4)
+                       volume_now_old, grainsize_mm, density_kgm3, distal_fraction
+2      format(a5,5x,i4,i2.2,i2.2,f05.2,2x,f14.2,f13.1,f11.1,f10.3,f10.3,f10.1,f10.3)
       close(12)
 
       !write input file
       open(unit=10,file='ash3d_input.inp')         
-      write(10,5) iyear, imonth, iday, hour, duration_now, height_now, volume_now, sim_duration
+      write(10,5) volcano_name, volcano_longitude, volcano_latitude, &
+                  nodal_spacing, nodal_spacing, iyear, imonth, iday, hour, duration_now, &
+                  height_now, volume_now, sim_duration, grainsize_mm, density_kgm3
       close(10)
 
 5     format('#The following is an input file to the model Ash3d, v.1.0',/, &
@@ -143,12 +154,12 @@
              '#              phi2 -- latitude of second tangency',/, &
              '#            radius -- earth radius for a spherical earth',/, &
              '*******************************************************************************',/, &
-             'Okmok                           #Volcano name (character*30)',/, &
+             a30,                          ' #Volcano name (character*30)',/, &
              '1 4 -95. 25.0  25.0 25.0 6371.229   #Proj flags and params',/, &
              '-180.0   -88.0                 #x, y of LL corner (112W, 34N)',/, &
              '360.0    176.0                 #grid width and height (km, or deg.  if latlonflag=1)',/, &
-             '-158.13      53.430            #vent location         (110.67W, 44.43N)',/, &
-             '1.00   1.00                    #DX, DY of grid cells  (km, or deg.)',/, &
+             f8.3,5x,f6.3,      '            #vent location         (110.67W, 44.43N)',/, &
+             f4.2,3x,f4.2,'                    #DX, DY of grid cells  (km, or deg.)',/, &
              '2.000                          #DZ of grid cells      (always km)',/, &
              '000.           4.0             #diffusion coefficient (m2/s), Suzuki constant',/, &
              '1                              #neruptions, number of eruptions or pulses',/, &
@@ -265,7 +276,7 @@
              '#GRAIN SIZE GROUPS',/, &
              '*******************************************************************************',/, &
              '1                            #Number of settling velocity groups',/, &
-             '0.03   1.000    2000.   1.0',/, &
+             f5.3,'  1.000    ',f6.1,'  1.0',/, &
              '*******************************************************************************',/, &
              '#Options for writing vertical profiles',/, &
              '#The first line below gives the number of locations (nlocs) where vertical',/, &

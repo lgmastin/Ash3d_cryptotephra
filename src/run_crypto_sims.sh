@@ -2,7 +2,26 @@
 
 #MCMC driver: a script that drives a series of Ash3d simulations for Monte Carlo analysis
 
-#This script runs jobs in parallel on up to 8 processors and then combines the results afterwards.
+#Note: for batch jobs, this script should be run with the command:
+# sbatch run_crypto_tephra.sh
+
+# To see the status of all jobs, type "squeue"
+# To see the resources, cpu's in usage etc., type "sstat job#"
+
+#MCMC_driver_parallel: a script that runs jobs in parallel on multiple processors and 
+#then combines the results afterwards
+
+#Below is a snippet of code crafted by Jeff Falgout to start the process.
+#SBATCH -A vhp
+#SBATCH -p UV
+#SBATCH -n 50
+#SBATCH --hint=compute_bound
+#SBATCH --mem-per-cpu=2048
+#SBATCH --time=3-00:00:00
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=lgmastin@usgs.gov
+#SBATCH -J Ash3d-parallel-Run
+#SBATCH --output=%j-Ash3d-parallel-Run.out
 
 ###THINGS TO CHECK BEFORE STARTING A RUN
 #1)  RunStartNumber is okay
@@ -38,20 +57,20 @@
 #The total number of runs performed = dirmax*(cyclemax+1)
 #Runs are numbered from RunStartNumber to (RunStartNumber + dirmax*(cyclemax+1))
 RunStartNumber=1     #Run number for first run in the series
-dirmax=2             #Number of simultaneous runs (1 to 50)
+dirmax=20            #Number of simultaneous runs (1 to 50)
 cyclemax=0           #Number of cycles (0 to ????)
 totruns=$(( $dirmax * ($cyclemax + 1) ))
 echo "totruns=$totruns"
 
 #####NAMES OF DIRECTORIES THAT CONTAIN PROGRAMS AND UTILITIES
-ASH3DDIR=/home/lgmastin/Ash3d/git/temp/Ash3d
-WINDDIR=/data2/WindFiles                               #location of wind files
-UTILDIR=/home/lgmastin/volcanoes/Okmok/scripts           #location of programs reading thickness
+ASH3DDIR=/home/lgmastin/Ash3d/git/Ash3d
+WINDDIR=/data2/WindFiles                                 #location of wind files
+UTILDIR=/home/lgmastin/temp/Ash3d_cryptotephra           #location of programs reading thickness
 
 #####NAMES OF DIRECTORIES WHERE RUNS ARE PERFORMED, AND WHERE OUTPUT IS WRITTEN
 FileDate=`date "+%Y%b%d"`                               #date, to be appended to file names
-RUNDIRS=/home/lgmastin/volcanoes/Okmok/RunDirs          #directory where runs are performed
-OUTPUTDIR=/home/lgmastin/volcanoes/Okmok/scripts/test_output  #directory containing output
+RUNDIRS=/home/lgmastin/temp/RunDirs                     #directory where runs are performed
+OUTPUTDIR=/home/lgmastin/temp/run_output/$FileDate      #directory containing output
 
 ####Output subdirectories.
 ##If the runs are done in a group of 1,000 or so at a time, each group of 1,000 will
@@ -67,7 +86,7 @@ MAPDIR=${OUTPUTDIR}/MapFiles                               #location of gif maps
 #date and time stamp.  Fortran codes like read_thickness.f90 have the location of the summary tables
 #hard-coded and can't modify those addresses for the dates.  So the summary tables will have to be
 #moved to ${OUTPUTDIR}/summary at the end of the simulations
-SUMMARYTABLEDIR=/home/lgmastin/volcanoes/Okmok/RunDirs/temp_output      #location of summary table
+SUMMARYTABLEDIR=${RUNDIRS}/temp_output      #location of summary table
 
 #See if the output directory exists.  If so, clean it out.  If not, create it.
 if test -r ${OUTPUTDIR}; then                                                        #See if this directory exists
@@ -95,18 +114,17 @@ rm -f ${SUMMARYTABLEDIR}/*                                                     #
 echo "creating new summary files"
 #create summary log file
 echo "SUMMARY OF INPUT VALUES USED IN HANFORD RUNS ON ${FileDate}" > ${SUMMARYTABLEDIR}/input_summary.txt
-echo "run #     start time                       plume height  duration   volume   m_fines    mu_agg" >> ${SUMMARYTABLEDIR}/input_summary.txt
-echo "          yyyymmddhh.hh  hrs_since_1900         km          hrs      km3                 phi" >> ${SUMMARYTABLEDIR}/input_summary.txt
+echo "run #     start time                       plume height  duration   volume  grainsize density    distal" >> ${SUMMARYTABLEDIR}/input_summary.txt
+echo "          yyyymmddhh.hh  hrs_since_1900         km          hrs      km3       mm      kg/m3    fraction" >> ${SUMMARYTABLEDIR}/input_summary.txt
 
-#     0       10        20        30        40        50        60        70        80        90        100       110       120       130
-#     123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901
+#create heading for table of thickness at ice core locations
 echo "                                                                       Ice core locations" > ${SUMMARYTABLEDIR}/thickness_summary.txt
 echo "                                  NGRIP2      GISP2       RECAP       Tunu2022    H. Tausen   NEEM        DYE3        Ak Nauk     Mt. Logan" >> ${SUMMARYTABLEDIR}/thickness_summary.txt
 echo "         longitude                317.7       321.3       333.3       326.1       322.0       308.9       316.2       94.8        219.5"     >> ${SUMMARYTABLEDIR}/thickness_summary.txt
 echo "         latitude                 75.1        72.6        71.3        78.0        82.5        77.5        65.2        80.6        60.6"      >> ${SUMMARYTABLEDIR}/thickness_summary.txt
 echo "Run #    Start date                                                      thicknesses, g/m2"                                      >> ${SUMMARYTABLEDIR}/thickness_summary.txt
 
-####################   Create new readme.txt file #################################
+#   Create new readme.txt file
 echo "This folder contains example output from runs using this script" > ${OUTPUTDIR}/readme.txt
 #Check to see whether any files are missing
 
@@ -129,7 +147,7 @@ do
          cd    ${RUNDIRS}/Dir${DirNumber}
          ln -s ${UTILDIR}/input_files/ice_core_locations.txt .
          ln -s ${UTILDIR}/input_files/ice_core_locations.xy  .
-         ln -s ${UTILDIR}/input_files/thickness_scale.png  .
+         ln -s ${UTILDIR}/input_files/thickness_scale_cryptotephra.png  .
          ln -s ${WINDDIR} Wind_nc
       else
          #echo "creating ${RUNDIRS}/Dir${DirNumber}"
@@ -137,7 +155,7 @@ do
          cd    ${RUNDIRS}/Dir${DirNumber}
          ln -s ${UTILDIR}/input_files/ice_core_locations.txt .
          ln -s ${UTILDIR}/input_files/ice_core_locations.xy  .
-         ln -s ${UTILDIR}/input_files/thickness_scale.png  .
+         ln -s ${UTILDIR}/input_files/thickness_scale_cryptotephra.png  .
          ln -s ${WINDDIR} Wind_nc
    fi
 done
@@ -184,7 +202,6 @@ for (( icycle=0;icycle<=$cyclemax;icycle++ )); do
          ${UTILDIR}/bin/MakeInput ${RunNumber}        
 
          #run the model
-         #echo "running ${ASH3DDIR}/bin/Ash3d_cc"
          #${ASH3DDIR}/bin/Ash3d ash3d_input.inp                             #used for testing
          ${ASH3DDIR}/bin/Ash3d ash3d_input.inp > logfile.txt 2>&1 &
 

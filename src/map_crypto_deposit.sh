@@ -21,26 +21,12 @@
 #wh-loopc.sh:           enables while loops?
 
 echo "------------------------------------------------------------"
-echo "running map_sensitivity.sh"
+echo "running map_crypto_sims.sh"
 echo `date`
 echo "------------------------------------------------------------"
 
-# We need to know if we must prefix all gmt commands with 'gmt', as required by version 5
-GMTv=5
-GMTpre='gmt '
-type gmt >/dev/null 2>&1 || { echo >&2 "Command 'gmt' not found.  Assuming GMTv4."; GMTv=4; GMTpre=' ';}
-
-#These lines were added because for some reason my computer doesn't recognize "GMT",
-#even though it uses version 5.
-GMTv=5
-#GMTpre='GMT '
-GMTpre='gmt '
-echo "GMTpre=$GMTpre, GMTv=$GMTv"
-#GMTROOT="/home/ash3d/GMT/GMT4.5.9"
-#UTILSDIR="/home/HanfordUser/Ash3d/vsc-ash"
-UTILSDIR="/home/lgmastin/Ash3d/git/Ash3d_web"
-PROGRAMDIR="${UTILSDIR}/bin"
-GRAPHICSDIR="/home/lgmastin/volcanoes/Okmok/scripts/input_files"
+#This script looks in these directories for input files
+GRAPHICSDIR="/home/lgmastin/temp/Ash3d_cryptotephra/input_files"
 
 #export PATH=/usr/local/bin:${GMTROOT}/bin:$PATH
 echo "removing old files"
@@ -52,13 +38,15 @@ date=`ncdump -h ${infile} | grep Date | cut -d\" -f2 | cut -c 1-10`
 echo $volc > volc.txt
 rm -f var.txt
 echo "dp_mm" > var.txt
+
+#get eruption start date from output file
 year=`ncdump -h ${infile} | grep ReferenceTime | cut -d\" -f2 | cut -c1-4`
 month=`ncdump -h ${infile} | grep ReferenceTime | cut -d\" -f2 | cut -c5-6`
 day=`ncdump -h ${infile} | grep ReferenceTime | cut -d\" -f2 | cut -c7-8`
 hour=`ncdump -h ${infile} | grep ReferenceTime | cut -d\" -f2 | cut -c9-10`
 minute=`ncdump -h ${infile} | grep ReferenceTime | cut -d\" -f2 | cut -c12-13`
 
-
+#get model domain from input file
 LLLON=`ncdump -h ${infile} | grep b1l3 | cut -d\" -f2 | awk '{print $1}'`
 LLLAT=`ncdump -h ${infile} | grep b1l3 | cut -d\" -f2 | awk '{print $2}'`
 DLON=`ncdump -h ${infile} | grep b1l4 | cut -d\" -f2 | awk '{print $1}'`
@@ -71,7 +59,7 @@ VCLON=`ncdump -h ${infile} | grep b1l5 | cut -d\" -f2 | awk '{print $1}'`
 VCLAT=`ncdump -h ${infile} | grep b1l5 | cut -d\" -f2 | awk '{print $2}'`
 echo "VCLON="$VCLON ", VCLAT="$VCLAT
 
-#get source parameters from netcdf file
+#get source parameters from input file
 EDur=`ncdump -v er_duration 3d_tephra_fall.nc | grep er_duration \
               | grep "=" | grep -v ":" | cut -f2 -d"=" | cut -f1 -d"," | cut -f2 -d" "` 
 EPlH=`ncdump -v er_plumeheight 3d_tephra_fall.nc | grep er_plumeheight \
@@ -98,39 +86,9 @@ echo "Processing " $volc " on " $date
 ## First process the netcdf file
 infilell="3d_tephra_fall.nc"
 
-if test 1 -eq 1
-   then
-
-   gsbins=`ncdump -h $infilell | grep "bn =" | cut -c6-8`      # # of grain-size bins
-   zbins=`ncdump -h $infilell | grep "z =" | cut -c6-7`        # # of elevation levels
-   tmax=`ncdump -h $infilell | grep "t = UNLIMITED" | cut -c22-23` # maximum time
-
-   echo "tmax=$tmax"
-
-   # Create the final deposit grid
-   tfinal=$((tmax-1))
-   echo "tfinal=$tfinal"
-   echo " ${volc} : Generating final deposit grid from dep_tot_out.grd"
-   #${GMTpre} grdconvert "$infilell?depothick[$tfinal]" dep_tot_out.grd
-   #${GMTpre} grdmath 1.0 dep_tot_out_t${tfinal}.grd MUL = dep_tot_out.grd
-   ${GMTpre} grdconvert "$infilell?depothick[$tfinal]" dep_tot_out.grd
-else
-  #
-   t=$((tmax-1))
-   lon1=`grdinfo ${infilell} -C | cut -f2`
-   lon2=`grdinfo ${infilell} -C | cut -f3`
-   lat1=`grdinfo ${infilell} -C | cut -f4`
-   lat2=`grdinfo ${infilell} -C | cut -f5`
-   # use dc (desk calculator)
-   lons1=`solve.sh $lon1 - 360.0`
-   lons2=`solve.sh $lon2 - 360.0`
-   tvar=(depothick ashcon_max cloud_height cloud_load)
-
-   #${GMTpre} grdreformat "${infile}?depothick[$t]" dep_tot_out.grd
-   ${GMTpre} grdconvert "${infile}?depothick[$t]" dep_tot_out.grd
-   ${GMTpre} grdedit dep_tot_out.grd -R${lons1}/${lons2}/${lat1}/${lat2}
-
-fi
+# Create the final deposit grid
+echo " ${volc} : Generating final deposit grid from dep_tot_out.grd"
+gmt grdconvert "$infilell?depothickFin" dep_tot_out.grd
 ###############################################################################
 #create .lev files of contour values
 echo "0.00001  255   0 255" >  dp_0.00001.lev   #deposit (0.01 g/m2)          magenta
@@ -156,61 +114,53 @@ COAST="-G220/220/220 -W"      # RGB values for land areas (220/220/220=light gra
 DETAIL="-Dc -A1000"           #-Dc=crude-res coastlines (-Dl=lo-res, -Dh=hi-res); -A1000=features smaller than 10000 km2 not plotted
 
 ###############################################################################
-if test 1 -eq 1
-then
-
 ###########################################################################################
-   #MAKE THE DEPOSIT MAP
-      echo " ${volc} : Creating deposit map"
-      #${GMTpre} gmtset ELLIPSOID Sphere
-      ${GMTpre} gmtset PROJ_ELLIPSOID Sphere
+#MAKE THE DEPOSIT MAP
+echo " ${volc} : Creating deposit map"
+#gmt gmtset ELLIPSOID Sphere
+gmt gmtset PROJ_ELLIPSOID Sphere
   
-      ${GMTpre} pscoast $AREA $PROJ $BASE $DETAIL $COAST -K > temp.ps     #Plot base map
-      #${GMTpre} coast -Rg -JA280/30/12c -Bg -Dc -A1000 -Gnavy --GMT_THEME=cookbook -pdf GMT_lambert_az_hemi
-      #${GMTpre} pscoast -Rg -JA280/30/12c -Bg -Dc -A1000 -Gnavy -K > temp.ps
+#Plot coastlines
+gmt pscoast $AREA $PROJ $BASE $DETAIL $COAST -K > temp.ps     #Plot base map
+#gmt coast -Rg -JA280/30/12c -Bg -Dc -A1000 -Gnavy --GMT_THEME=cookbook -pdf GMT_lambert_az_hemi
+#gmt pscoast -Rg -JA280/30/12c -Bg -Dc -A1000 -Gnavy -K > temp.ps
 
-      echo "using grdcontour"
-      ${GMTpre} grdcontour dep_tot_out.grd    $AREA $PROJ $BASE -Cdp_0.00001.lev  -A- -W1,255/0/255   -O -K >> temp.ps
-      ${GMTpre} grdcontour dep_tot_out.grd    $AREA $PROJ $BASE -Cdp_0.00003.lev  -A- -W1,0/0/255     -O -K >> temp.ps
-      ${GMTpre} grdcontour dep_tot_out.grd    $AREA $PROJ $BASE -Cdp_0.00010.lev -A- -W1,0/255/255   -O -K >> temp.ps
-      ${GMTpre} grdcontour dep_tot_out.grd    $AREA $PROJ $BASE -Cdp_0.00030.lev -A- -W1,0/255/0     -O -K >> temp.ps
-      ${GMTpre} grdcontour dep_tot_out.grd    $AREA $PROJ $BASE -Cdp_0.00100.lev -A- -W1,255/255/0   -O -K >> temp.ps
-      ${GMTpre} grdcontour dep_tot_out.grd    $AREA $PROJ $BASE -Cdp_0.00300.lev -A- -W1,255/0/0     -O -K >> temp.ps
+#Plot contours of g/m2
+echo "using grdcontour"
+gmt grdcontour dep_tot_out.grd    $AREA $PROJ $BASE -Cdp_0.00001.lev  -A- -W1,255/0/255   -O -K >> temp.ps
+gmt grdcontour dep_tot_out.grd    $AREA $PROJ $BASE -Cdp_0.00003.lev  -A- -W1,0/0/255     -O -K >> temp.ps
+gmt grdcontour dep_tot_out.grd    $AREA $PROJ $BASE -Cdp_0.00010.lev -A- -W1,0/255/255   -O -K >> temp.ps
+gmt grdcontour dep_tot_out.grd    $AREA $PROJ $BASE -Cdp_0.00030.lev -A- -W1,0/255/0     -O -K >> temp.ps
+gmt grdcontour dep_tot_out.grd    $AREA $PROJ $BASE -Cdp_0.00100.lev -A- -W1,255/255/0   -O -K >> temp.ps
+gmt grdcontour dep_tot_out.grd    $AREA $PROJ $BASE -Cdp_0.00300.lev -A- -W1,255/0/0     -O -K >> temp.ps
 
-      echo $VCLON $VCLAT '1.0' | ${GMTpre} psxy $AREA $PROJ -St0.1i -Gblack -Wthinnest -O -K >> temp.ps  #Plot Volcano
+#Add volcano location
+echo $VCLON $VCLAT '1.0' | gmt psxy $AREA $PROJ -St0.1i -Gblack -Wthinnest -O -K >> temp.ps  #Plot Volcano
 
-      #echo "running ${PROGRAMDIR}/legend_placer_dp_mm"
-      #${PROGRAMDIR}/legend_placer_dp_mm
-
-      echo "adding sample locations"
-      if test -r ice_core_locations.xy
-      then
-          #${GMTpre} psxy ice_core_locations.xy $AREA $PROJ -Sc0.05i -Gblack -Wthinnest -V -O -K >> temp.ps  
-          ${GMTpre} psxy ice_core_locations.xy $AREA $PROJ -Sc0.05i -Gred -Wthinnest,red -V -O -K >> temp.ps  
-      fi
-
-   #  Convert to pdf and display
-   echo "convert -rotate 90 temp.pdf -alpha off temp.gif"
-   #convert temp.pdf -alpha off temp.gif
-   convert -rotate 90 temp.ps -alpha off temp.gif
-
-   #convert temp.gif deposit_thickness_gcm2.gif
-   mv temp.gif deposit_thickness_gcm2.gif
-
-   #Add thickness scale
-   legendx_UL=600
-   legendy_UL=100
-   composite -geometry +${legendx_UL}+${legendy_UL} thickness_scale_cryptotephra.png \
-         deposit_thickness_gcm2.gif  deposit_thickness_gcm2.gif
-
-   # Clean up more temporary files
-   rm -f *.grd *.lev caption.txt map_range.txt
-   rm -f temp.* gmt.conf gmt.history
-
+#Add ice core locations
+echo "adding sample locations"
+if test -r ice_core_locations.xy
+then
+    gmt psxy ice_core_locations.xy $AREA $PROJ -Sc0.05i -Gred -Wthinnest,red -V -O -K >> temp.ps  
 fi
 
+#  Convert to pdf and rename
+echo "convert -rotate 90 temp.pdf -alpha off temp.gif"
+convert -rotate 90 temp.ps -alpha off temp.gif
+mv temp.gif deposit_thickness_gcm2.gif
+
+#Add thickness scale
+legendx_UL=600
+legendy_UL=100
+composite -geometry +${legendx_UL}+${legendy_UL} thickness_scale_cryptotephra.png \
+     deposit_thickness_gcm2.gif  deposit_thickness_gcm2.gif
+
+# Remove temporary files
+rm -f *.grd *.lev caption.txt map_range.txt
+rm -f temp.* gmt.conf gmt.history
 rm -f contour*.xyz volc.txt var.txt
 
+#Write out final info
 width=`identify deposit_thickness_gcm2.gif | cut -f3 -d' ' | cut -f1 -d'x'`
 height=`identify deposit_thickness_gcm2.gif | cut -f3 -d' ' | cut -f2 -d'x'`
 echo "Figure width=$width, height=$height"
@@ -220,6 +170,6 @@ echo "eruption duration (hrs) =$EDur"
 echo "erupted volume (km3 DRE) ="$EVol
 echo "all done"
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo "finished map_GMT_deposit.sh"
+echo "finished map_cryptotephra_deposit.sh"
 echo `date`
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"

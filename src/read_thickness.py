@@ -6,6 +6,9 @@ import datetime
 import math
 from netCDF4 import Dataset
 
+#Specify the location of the thickness summary file
+outfile2 = '/home/lgmastin/temp/RunDirs/temp_output/thickness_summary.txt'
+
 #First, define the 2d interpolation function
 def interp2d(gridX,gridY,Z,interpX,interpY):
 	#function that interprets values from a 2D grid.
@@ -129,7 +132,6 @@ for istat in range(len(station_names)):
 f.close()
 
 ## Write out results to "thickness_summary.txt"
-outfile2 = '/home/lgmastin/volcanoes/Okmok/RunDirs/temp_output/thickness_summary.txt'
 f = open(outfile2,"a+")
 f.write("%05d    %20s%12.5f%12.5f%12.5f%12.5f%12.5f%12.5f%12.5f%12.5f%12.5f\n" % \
                    (RunNumber,StartTime,float(thickness_here[0]),float(thickness_here[1]),float(thickness_here[2]),float(thickness_here[3]),\
