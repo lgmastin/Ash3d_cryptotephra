@@ -22,7 +22,7 @@ Sample_massload
     named "Run00001.txt", "Run00002.txt" etc.
 summary
     Summary tables of model inputs "input_summary.txt" and deposit mass load 
-    (misnamed "thickness_summary.txt") at ice core locations for each run.
+    ("massload_summary.txt") at ice core locations for each run.
 zip_files
     Zip files from each run, containing all model input and output.  This file also includes
     a netcdf file of output ("3d_tephra_fall.nc"), the Ash3d system output generated during the
