@@ -16,7 +16,7 @@ InputFiles
 MapFiles
     Deposit maps of mass load (g/m2) from each run, in gif format.  Files are named "Run00001.gif",
     "Run00002.gif" etc.
-SampleThickness
+Sample_massload
     ASCII files listing sample mass load from each run at several ice core locations.  Files are 
     named "Run00001.txt", "Run00002.txt" etc.
 summary
