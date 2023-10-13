@@ -1,6 +1,7 @@
 # Explanation of contents
 
-This example output directory contains a subset of results generated using this script on October 12, 2023, using simulations of an eruption from Katmai volcano, Alaska.  The directory contents are as follows:
+This example output directory contains a subset of results generated using this script on October 12, 2023, 
+using simulations of an eruption from Katmai volcano, Alaska.  The directory contents are as follows:
 
 DepositFiles/ESRI-ASCII
     Contains gridded ascii files of deposit mass load in kg/m2, in ESRI-ASCII format
