@@ -79,7 +79,7 @@ ZIPFILEDIR=${OUTPUTDIR}/zip_files                          #location of zip file
 DEPOSITDIR_ESRI=${OUTPUTDIR}/DepositFiles/ESRI_ASCII            #location of DepositFiles
 DEPOSITDIR_MATLAB=${OUTPUTDIR}/DepositFiles/Matlab               #location of reformatted deposit files
 INFILEDIR=${OUTPUTDIR}/input_files                         #location of reformatted deposit files
-THICKNESSDIR=${OUTPUTDIR}/sample_thickness                 #location of files of thickness at ice core locations
+THICKNESSDIR=${OUTPUTDIR}/sample_massload                 #location of files of thickness at ice core locations
 MAPDIR=${OUTPUTDIR}/MapFiles                               #location of gif maps
 
 #location of summary tables.  Note that this is not in OUTPUTDIR, because OUTPUTDIR has the current
@@ -118,11 +118,11 @@ echo "run #     start time                       plume height  duration   volume
 echo "          yyyymmddhh.hh  hrs_since_1900         km          hrs      km3       mm      kg/m3    fraction" >> ${SUMMARYTABLEDIR}/input_summary.txt
 
 #create heading for table of thickness at ice core locations
-echo "                                                                       Ice core locations" > ${SUMMARYTABLEDIR}/thickness_summary.txt
-echo "                                  NGRIP2      GISP2       RECAP       Tunu2022    H. Tausen   NEEM        DYE3        Ak Nauk     Mt. Logan" >> ${SUMMARYTABLEDIR}/thickness_summary.txt
-echo "         longitude                317.7       321.3       333.3       326.1       322.0       308.9       316.2       94.8        219.5"     >> ${SUMMARYTABLEDIR}/thickness_summary.txt
-echo "         latitude                 75.1        72.6        71.3        78.0        82.5        77.5        65.2        80.6        60.6"      >> ${SUMMARYTABLEDIR}/thickness_summary.txt
-echo "Run #    Start date                                                      thicknesses, g/m2"                                      >> ${SUMMARYTABLEDIR}/thickness_summary.txt
+echo "                                                                       Ice core locations" > ${SUMMARYTABLEDIR}/massload_summary.txt
+echo "                                  NGRIP2      GISP2       RECAP       Tunu2022    H. Tausen   NEEM        DYE3        Ak Nauk     Mt. Logan" >> ${SUMMARYTABLEDIR}/massload_summary.txt
+echo "         longitude                317.7       321.3       333.3       326.1       322.0       308.9       316.2       94.8        219.5"     >> ${SUMMARYTABLEDIR}/massload_summary.txt
+echo "         latitude                 75.1        72.6        71.3        78.0        82.5        77.5        65.2        80.6        60.6"      >> ${SUMMARYTABLEDIR}/massload_summary.txt
+echo "Run #    Start date                                                      mass load, g/m2"                                      >> ${SUMMARYTABLEDIR}/massload_summary.txt
 
 #   Create new readme.txt file
 echo "This folder contains example output from runs using this script" > ${OUTPUTDIR}/readme.txt
