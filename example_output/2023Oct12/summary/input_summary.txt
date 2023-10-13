@@ -1,0 +1,8 @@
+SUMMARY OF INPUT VALUES USED IN HANFORD RUNS ON 2023Oct12
+run #     start time                       plume height  duration   volume  grainsize density    distal
+          yyyymmddhh.hh  hrs_since_1900         km          hrs      km3       mm      kg/m3    fraction
+00001     1968020620.74       596948.74         21.0        3.0     1.360     0.030    2000.0     0.050
+00002     19951126 8.36       840656.36         21.0        3.0     1.360     0.030    2000.0     0.050
+00003     20100422 9.27       966921.27         21.0        3.0     1.360     0.030    2000.0     0.050
+00004     1999101917.09       874817.09         21.0        3.0     1.360     0.030    2000.0     0.050
+00005     1962081823.70       548999.70         21.0        3.0     1.360     0.030    2000.0     0.050
