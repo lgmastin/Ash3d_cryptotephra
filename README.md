@@ -12,13 +12,14 @@ The scripts in this repository perform the following tasks:
 1. Creates a table of inputs to be used by all simulations
 2. Creates a series of directories, each of which will contain inputs and outputs for one simulation.
 3. Goes sequentially through each directory, performing the following tasks
-  - a) Run a fortran program (MakeInput.f90) that reads from the input table and creates an Ash3d input file
-  - b) Run the model in background
-4. Wait for all runs to finish.  The, go through each directory sequentially, performing the following post-processing tasks:
+  - Add soft links to various input files, wind files
+  - Run a fortran program (MakeInput.f90) that reads from the input table and creates an Ash3d input file
+  - Run the model in background
+4. Wait for all runs to finish.  Then, go through each directory sequentially, performing the following post-processing tasks:
    - Create a gif map using GMT
    - Zip kml files into kmz files
-   - Renameg files
-   - Write tephra thicknesses at specific locations so a summary file
+   - Rename files
+   - Write tephra thicknesses at specific locations to a summary file
    - Copy output files to a "run_output" directory with subdirectories for each file type
 
 The files that perform these tasks are in the src directory.  Input files used by Ash3d or GMT are in the input_files directory.  Readme files in those directories explain each file and how it is used.  
