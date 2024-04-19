@@ -12,10 +12,11 @@ The scripts in this repository perform the following tasks:
 1. Creates a table of inputs to be used by all simulations
 2. Creates a series of directories, each of which will contain inputs and outputs for one simulation.
 3. Goes sequentially through each directory, performing the following tasks
-  - Add soft links to various input files, wind files
-  - Run a fortran program (MakeInput.f90) that reads from the input table and creates an Ash3d input file
-  - Run the model in background
-4. Wait for all runs to finish.  Then, go through each directory sequentially, performing the following post-processing tasks:
+    - Add soft links to various input files, wind files
+    - Run a fortran program (MakeInput.f90) that reads from the input table and creates an Ash3d input file
+    - Run the model in background
+4. Waits for all runs to finish.
+5. Goes through each directory sequentially, performing the following post-processing tasks:
    - Create a gif map using GMT
    - Zip kml files into kmz files
    - Rename files
